@@ -3,12 +3,13 @@ from fastbook import *
 import streamlit as st
 import boto3
 import io
+import sys
+import os
 
 
 # Load pickled model from S3
 @st.cache(suppress_st_warning=True, show_spinner=False, hash_funcs={Learner: lambda _: None})
 def load_model_from_s3(s3_bucket, path_to_model):
-
     # Connect to s3 bucket.
     # AWS credentials must be set up beforehand by running 'aws configure' or
     # by creating .streamlit/secrets.toml with the following:
@@ -79,23 +80,36 @@ class Predict:
             st.write("image is null")
 
 
-import sys
+def s3_bucket_and_model():
+    s3_bucket_name = None
+    s3_model_path = None
+    if len(sys.argv) < 3:
+        s3_bucket_name = os.environ.get('s3_bucket_name')
+        s3_model_path = os.environ.get('s3_model_path')
+    elif len(sys.argv) >= 3:
+        s3_bucket_name = sys.argv[1]
+        s3_model_path = sys.argv[2]
+
+    if s3_bucket_name is None or s3_model_path is None:
+        if s3_bucket_name is None:
+            st.error("Missing S3 bucket name")
+        if s3_model_path is None:
+            st.error("Missing model path")
+        st.snow()
+        st.stop()
+
+    return s3_bucket_name, s3_model_path
+
 
 if __name__ == '__main__':
     # col = st.columns(1)
     # with col:
 
-    if len(sys.argv) < 3:
-        st.error("Missing model file path and name")
-        st.snow()
-        st.stop()
-
-    s3_bucket = sys.argv[1]
-    s3_path_to_model = sys.argv[2]
+    s3_bucket_name, s3_model_path = s3_bucket_and_model()
 
     # Instantiate predictor
     # predictor = Predict('/Users/jawaidhakim/Downloads', 'bears.pkl')
-    predictor = Predict(s3_bucket, s3_path_to_model)
+    predictor = Predict(s3_bucket_name, s3_model_path)
 
     # Write header
     st.header('Bear Classifier')
