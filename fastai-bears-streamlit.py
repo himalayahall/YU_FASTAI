@@ -5,6 +5,7 @@ import boto3
 import io
 import sys
 import os
+import random
 
 
 # Load pickled model from S3
@@ -78,7 +79,8 @@ class Predict:
             prob = float(probs[pred_idx])
             if prob >= 0.95:
                 st.write(f'## Prediction: {pred}; Probability: {prob:.04f}')
-                st.balloons()
+                if random.randint(1, 10) > 8:   # show balloons 20% of time
+                    st.balloons()
             else:
                 st.write(f'## Prediction: {pred}; Probability: {prob:.04f}')
 
