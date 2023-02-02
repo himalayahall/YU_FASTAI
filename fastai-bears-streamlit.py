@@ -1,27 +1,53 @@
-import boto3
-
-# s3 = boto3.client('s3')
-# s3.download_file('jhfastai', 'bears.pkl', '/Users/jawaidhakim/Downloads/bears3.pkl')
-
 from fastai.vision.all import *
 from fastbook import *
 import streamlit as st
+import boto3
+import io
+
+
+# Load pickled model from S3
+@st.cache(suppress_st_warning=True, show_spinner=False, hash_funcs={Learner: lambda _: None})
+def load_model_from_s3(s3_bucket, path_to_model):
+
+    # Connect to s3 bucket.
+    # AWS credentials must be set up beforehand by running 'aws configure' or
+    # by creating .streamlit/secrets.toml with the following:
+    #     AWS_ACCESS_KEY_ID=xxxx
+    #     AWS_SECRET_ACCESS_KEY=yyyy
+    #     AWS_DEFAULT_REGION=us-east-1
+    #
+    # Make sure this file IS NOT committed to github!
+    #
+    # Go to the Streamlit app dashboard and in the app 's dropdown menu, click on Edit Secrets.
+    # Copy the content of secrets.toml
+    s3client = boto3.client('s3')
+
+    # load model from s3 bucket
+    response = s3client.get_object(Bucket=s3_bucket, Key=path_to_model)
+    body = response['Body'].read()
+
+    # IMPORTANT: MUST convert raw bytes into in-memory bytes buffer for random access by torch
+    byte_stream = io.BytesIO(body)
+    st.success("Loaded model successfully")
+
+    # Learner can be created from bytes!
+    return load_learner(byte_stream)
+
+
+learn_inference = None
 
 
 class Predict:
+    def __init__(self, s3_bucket, s3_path_to_model):
 
-    def __init__(self, model_path, model_name):
-
-        # Model (pkl file) path
-        self.model_path = model_path
-
-        # Model (pfk file) name
-        self.mode_name = model_name
-
+        global learn_inference
         # Load saved model
-        self.path = Path(self.model_path)
-        self.learn_inference = load_learner(self.path / self.mode_name)
+        if learn_inference is None:
+            with st.spinner("Loading model " + s3_path_to_model + " from S3 bucket " + s3_bucket + "..."):
+                learn_inference = load_model_from_s3(s3_bucket, s3_path_to_model)
 
+        self.s3_bucket = s3_bucket
+        self.s3_path_to_model = s3_path_to_model
         self.img = None
 
     # Image selected callback
@@ -47,7 +73,7 @@ class Predict:
     def on_classify_clicked(self) -> None:
         if self.img is not None:
             self.show_image()
-            pred, pred_idx, probs = self.learn_inference.predict(self.img)
+            pred, pred_idx, probs = learn_inference.predict(self.img)
             st.write(f'## Prediction: {pred}; Probability: {probs[pred_idx]:.04f}')
         else:
             st.write("image is null")
@@ -64,9 +90,12 @@ if __name__ == '__main__':
         st.snow()
         st.stop()
 
+    s3_bucket = sys.argv[1]
+    s3_path_to_model = sys.argv[2]
+
     # Instantiate predictor
-    #predictor = Predict('/Users/jawaidhakim/Downloads', 'bears.pkl')
-    predictor = Predict(sys.argv[1], sys.argv[2])
+    # predictor = Predict('/Users/jawaidhakim/Downloads', 'bears.pkl')
+    predictor = Predict(s3_bucket, s3_path_to_model)
 
     # Write header
     st.header('Bear Classifier')
