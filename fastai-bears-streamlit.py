@@ -75,7 +75,13 @@ class Predict:
         if self.img is not None:
             self.show_image()
             pred, pred_idx, probs = learn_inference.predict(self.img)
-            st.write(f'## Prediction: {pred}; Probability: {probs[pred_idx]:.04f}')
+            prob = float(probs[pred_idx])
+            if prob >= 0.95:
+                st.write(f'## Prediction: {pred}; Probability: {prob:.04f}')
+                st.balloons()
+            else:
+                st.write(f'## Prediction: {pred}; Probability: {prob:.04f}')
+
         else:
             st.write("image is null")
 
