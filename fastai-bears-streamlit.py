@@ -83,12 +83,14 @@ class Predict:
 def s3_bucket_and_model():
     s3_bucket_name = None
     s3_model_path = None
-    if len(sys.argv) < 3:
-        s3_bucket_name = os.environ.get('s3_bucket_name')
-        s3_model_path = os.environ.get('s3_model_path')
-    elif len(sys.argv) >= 3:
+
+    # Pick up config first from command line followed bhy env
+    if len(sys.argv) >= 3:
         s3_bucket_name = sys.argv[1]
         s3_model_path = sys.argv[2]
+    else:
+        s3_bucket_name = os.environ.get('s3_bucket_name')
+        s3_model_path = os.environ.get('s3_model_path')
 
     if s3_bucket_name is None or s3_model_path is None:
         if s3_bucket_name is None:
