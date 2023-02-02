@@ -53,12 +53,20 @@ class Predict:
             st.write("image is null")
 
 
+import sys
+
 if __name__ == '__main__':
     # col = st.columns(1)
     # with col:
 
+    if len(sys.argv) < 3:
+        st.error("Missing model file path and name")
+        st.snow()
+        st.stop()
+
     # Instantiate predictor
-    predictor = Predict('/Users/jawaidhakim/Downloads', 'bears.pkl')
+    #predictor = Predict('/Users/jawaidhakim/Downloads', 'bears.pkl')
+    predictor = Predict(sys.argv[1], sys.argv[2])
 
     # Write header
     st.header('Bear Classifier')
