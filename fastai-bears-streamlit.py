@@ -104,9 +104,6 @@ def s3_bucket_and_model():
 
 
 if __name__ == '__main__':
-    # col = st.columns(1)
-    # with col:
-
     s3_bucket_name, s3_model_path = s3_bucket_and_model()
 
     # Instantiate predictor
