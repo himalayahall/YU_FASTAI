@@ -93,7 +93,7 @@ class Predict:
                 msgs = prob_msgs['low']
             else:
                 msgs = prob_msgs['very low']
-            msg_idx = random.randint(0, len(msgs))
+            msg_idx = random.randint(0, len(msgs) - 1)
             msg = msgs[msg_idx]
 
             st.write(f'## {msg}: {pred} (Prob: {prob:.04f})')
