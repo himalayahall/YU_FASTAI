@@ -7,6 +7,12 @@ import sys
 import os
 import random
 
+prob_msgs = {
+                'very low': ["Not confident about this", "To be taken with a grain of salt", 'I have a bad feeling about this'],
+                'low': ['Possibly', 'Not feeling very confident'],
+                'high': ['Quite likely', 'Quite possibly', 'I think it is'],
+                'very high': ['Most likely', 'Quite sure it is', 'It is']
+             }
 
 # Load pickled model from S3
 @st.cache(suppress_st_warning=True, show_spinner=False, hash_funcs={Learner: lambda _: None})
@@ -77,12 +83,23 @@ class Predict:
             self.show_image()
             pred, pred_idx, probs = learn_inference.predict(self.img)
             prob = float(probs[pred_idx])
+
+            # confidence appropriate msg
             if prob >= 0.95:
-                st.write(f'## Prediction: {pred}; Probability: {prob:.04f}')
-                if random.randint(1, 10) > 8:   # show balloons 20% of time
-                    st.balloons()
+                msgs = prob_msgs['very high']
+            elif prob >= 80.0:
+                msgs = prob_msgs['high']
+            elif prob >= 65.0:
+                msgs = prob_msgs['low']
             else:
-                st.write(f'## Prediction: {pred}; Probability: {prob:.04f}')
+                msgs = prob_msgs['very low']
+            msg_idx = random.randint(0, len(msgs))
+            msg = msgs[msg_idx]
+
+            st.write(f'## {msg}: Pred: {pred}; Prob: {prob:.04f}')
+
+            if prob >= 0.95 and random.randint(1, 10) > 8: # show balloons 20% of time
+                st.balloons()
 
         else:
             st.write("image is null")
