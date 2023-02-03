@@ -96,7 +96,7 @@ class Predict:
             msg_idx = random.randint(0, len(msgs))
             msg = msgs[msg_idx]
 
-            st.write(f'## {msg}: Pred: {pred}; Prob: {prob:.04f}')
+            st.write(f'## {msg}: {pred}; Prob: {prob:.04f}')
 
             if prob >= 0.95 and random.randint(1, 10) > 8: # show balloons 20% of time
                 st.balloons()
