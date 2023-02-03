@@ -85,11 +85,11 @@ class Predict:
             prob = float(probs[pred_idx])
 
             # confidence appropriate msg
-            if prob >= 0.95:
+            if prob >= 0.90:
                 msgs = prob_msgs['very high']
-            elif prob >= 80.0:
+            elif prob >= 0.80:
                 msgs = prob_msgs['high']
-            elif prob >= 65.0:
+            elif prob >= 0.70:
                 msgs = prob_msgs['low']
             else:
                 msgs = prob_msgs['very low']
@@ -98,7 +98,7 @@ class Predict:
 
             st.write(f'## {msg}: {pred} (Prob: {prob:.04f})')
 
-            if prob >= 0.95 and random.randint(1, 10) > 8: # show balloons 20% of time
+            if prob >= 0.90 and random.randint(1, 10) > 7: # show balloons 20% of time
                 st.balloons()
 
         else:
