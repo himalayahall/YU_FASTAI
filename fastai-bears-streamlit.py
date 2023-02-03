@@ -9,7 +9,7 @@ import random
 
 prob_msgs = {
                 'very low': ["Not confident about this", "To be taken with a grain of salt", 'I have a bad feeling about this'],
-                'low': ['Possibly', 'Not feeling very confident'],
+                'low': ['Possibly', 'Not feeling very confident', 'Not quite sure'],
                 'high': ['Quite likely', 'Quite possibly', 'I think it is'],
                 'very high': ['Most likely', 'Quite sure it is', 'It is']
              }
