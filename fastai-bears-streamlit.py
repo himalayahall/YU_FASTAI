@@ -88,7 +88,7 @@ class Predict:
             msg = get_msg(prob)
             st.write(f'## {msg}: {pred} (Prob: {prob:.04f})')
 
-            if prob >= 0.90 and random.randint(1, 10) > 7:  # show balloons 20% of time
+            if prob >= 0.90 and random.randint(1, 10) > 5:  # show balloons 20% of time
                 st.balloons()
 
         else:
