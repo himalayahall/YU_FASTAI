@@ -8,11 +8,12 @@ import os
 import random
 
 prob_msgs = {
-                'very low': ["Not confident about this", "To be taken with a grain of salt", 'I have a bad feeling about this'],
-                'low': ['Possibly', 'Not feeling very confident', 'Not quite sure'],
-                'high': ['Quite likely', 'Quite possibly', 'I think it is'],
-                'very high': ['Most likely', 'Quite sure it is', 'It is']
-             }
+    'very low': ["Not confident about this", "To be taken with a grain of salt", 'I have a bad feeling about this'],
+    'low': ['Possibly', 'Not feeling very confident', 'Not quite sure'],
+    'high': ['Quite likely', 'Quite possibly', 'I think it is'],
+    'very high': ['Most likely', 'Quite sure it is', 'It is']
+}
+
 
 # Load pickled model from S3
 @st.cache(suppress_st_warning=True, show_spinner=False, hash_funcs={Learner: lambda _: None})
@@ -34,7 +35,7 @@ def load_model_from_s3(s3_bucket, path_to_model):
     response = s3client.get_object(Bucket=s3_bucket, Key=path_to_model)
     body = response['Body'].read()
 
-    # IMPORTANT: MUST convert raw bytes into in-memory bytes buffer for random access by torch
+    # IMPORTANT: MUST convert raw bytes into in-memory bytes buffer (capable of random access) for torch
     byte_stream = io.BytesIO(body)
     st.success("Loaded model successfully")
 
@@ -84,32 +85,36 @@ class Predict:
             pred, pred_idx, probs = learn_inference.predict(self.img)
             prob = float(probs[pred_idx])
 
-            # confidence appropriate msg
-            if prob >= 0.90:
-                msgs = prob_msgs['very high']
-            elif prob >= 0.80:
-                msgs = prob_msgs['high']
-            elif prob >= 0.70:
-                msgs = prob_msgs['low']
-            else:
-                msgs = prob_msgs['very low']
-            msg_idx = random.randint(0, len(msgs) - 1)
-            msg = msgs[msg_idx]
-
+            msg = get_msg(prob)
             st.write(f'## {msg}: {pred} (Prob: {prob:.04f})')
 
-            if prob >= 0.90 and random.randint(1, 10) > 7: # show balloons 20% of time
+            if prob >= 0.90 and random.randint(1, 10) > 7:  # show balloons 20% of time
                 st.balloons()
 
         else:
             st.write("image is null")
 
 
+def get_msg(prob):
+    # confidence appropriate msg
+    if prob >= 0.90:
+        msgs = prob_msgs['very high']
+    elif prob >= 0.80:
+        msgs = prob_msgs['high']
+    elif prob >= 0.70:
+        msgs = prob_msgs['low']
+    else:
+        msgs = prob_msgs['very low']
+    msg_idx = random.randint(0, len(msgs) - 1)
+    msg = msgs[msg_idx]
+    return msg
+
+
 def s3_bucket_and_model():
     s3_bucket_name = None
     s3_model_path = None
 
-    # Pick up config first from command line followed bhy env
+    # Pick up config, first from command line and then (if not on command line) from env
     if len(sys.argv) >= 3:
         s3_bucket_name = sys.argv[1]
         s3_model_path = sys.argv[2]
